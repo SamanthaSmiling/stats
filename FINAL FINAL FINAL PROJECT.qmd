@@ -1,0 +1,399 @@
+---
+title: "Modeling Global Ecological and Socio-Economic Factors (2015-2023)"
+author: "Meron, Xiangyu, Adil Gazder, Hongyi Duan"
+subtitle: "Due November 17 at 11:59pm"
+format: 
+  pdf:
+    geometry: margin=0.5in
+execute:
+  echo: false
+  warning: false
+---
+
+## Abstract
+
+## Introduction
+
+## Methods
+
+### Data Sourcing and Pre-processing
+
+Our data was a curated dataset from the World Development Indicators (WDI) platform. WDI is the primary World Bank collection of development indicators, compiled from officially recognized international sources. It presents the most current and accurate global development data available, and includes national, regional and global estimates. The database contains 1,400 time series indicators for 217 economies and more than 40 country groups, with data for many indicators going back more than 50 years. We restricted our data to only our variables of interest and associated factors which may affect our research questions.
+
+### Variable Selection
+
+The two main outcome variables we use is the Total CO2 emissions for a country for a given year (continuous variable) and the Income Group of a country for a given year (Categorical Variable).
+
+-   The Total CO2 Emissions variable is measured in terms of Mega-tonnes of CO2 equivalent (1 million metric tonnes) and is defined as the total annual emissions of carbon dioxide equivalent units from human activities, excluding its use for Land Use, Land Use Change and Forestry (LULUCF). We only restrict the total CO2 emissions to focus only on emissions from direct anthropocentric activities and exclude natural or semi-natural processes.
+
+-   Income Group is defined as the classification of a country into one of the of four categories (Low Income (L), Lower Middle Income (LM), Upper Middle Income (UM) and High Income (H)), based on its Gross Net Income per capita (measured in US\$) for that given year. Based on dynamic thresholds which vary per year, each country is classified into one of the following four categories.
+
+To answer our research questions, our variable selection also included the following predictors (non exhaustive list):
+
+-   Adjusted Net National Income (in US\$) measures non inflation adjusted and is defined as the difference between Gross National Income and the consumption of fixed capital and natural resources depletion
+
+-   Compulsory Education Duration (in number of years) is the total number of years that children are legally obligated to attend school
+
+-   Labor force comprises people ages 15 and older who supply labor for the production of goods and services during a specified period. It includes people who are currently employed and people who are unemployed but seeking work as well as first-time job-seekers. Not everyone who works is included, however. Unpaid workers, family workers, and students are often omitted, and some countries do not count members of the armed forces.
+
+-   Life expectancy at birth (in number of years) indicates the number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life.
+
+-   Total population is based on the de facto definition of population, which counts all residents regardless of legal status or citizenship. Midyear estimates are considered for this dataset.
+
+### Models
+
+### Model Fitting and Evaluation
+
+## Results
+
+### Research Question 1
+
+**Research question 1:** What impact does compulsory education, population and adjusted net national income index have on the total carbon emissions of a country (Continuous outcome) for countries in a year.
+
+1.  Data pre-processing
+
+```{r, results='hide'}
+# Load necessary libraries
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(MASS)
+library(caret)
+library(nnet)
+library(summarytools)
+library(car)
+library(gridExtra)
+
+# Define the URL to the raw file
+url <- "https://raw.githubusercontent.com/SamanthaSmiling/stats/main/STATS%20FINAL%20PROJECT%20DATA.xlsx"
+
+# Download the file locally
+temp_file <- tempfile(fileext = ".xlsx")
+download.file(url, temp_file, mode = "wb")
+
+# Read the Excel file
+main_data <- read_excel(temp_file)
+main_data$`Labor force ratio` <- main_data$`Labor force, total [SL.TLF.TOTL.IN]`/main_data$`Population, total [SP.POP.TOTL]`
+
+```
+
+2.  Data Glimpse
+
+```{r, results='hide'}
+# Preview the data
+glimpse(main_data)
+colnames(main_data)
+```
+
+3.  Rename the cols
+
+```{r, results='hide'}
+# Load necessary libraries
+# library(dplyr)
+
+# Select relevant columns
+data <- main_data[, c("Carbon dioxide (CO2) emissions (total) excluding LULUCF (Mt CO2e) [EN.GHG.CO2.MT.CE.AR5]", 
+                     "Compulsory education, duration (years) [SE.COM.DURS]", 
+                     "Adjusted net national income (current US$) [NY.ADJ.NNTY.CD]", 
+                     "Population, total [SP.POP.TOTL]")]
+
+selected_data <- data %>%
+  rename(
+    Carbon_Emissions = "Carbon dioxide (CO2) emissions (total) excluding LULUCF (Mt CO2e) [EN.GHG.CO2.MT.CE.AR5]",
+    Education_Years = "Compulsory education, duration (years) [SE.COM.DURS]",
+    Net_Income = "Adjusted net national income (current US$) [NY.ADJ.NNTY.CD]",
+    Population = "Population, total [SP.POP.TOTL]"
+  ) %>%
+  filter(!is.na(Carbon_Emissions), !is.na(Education_Years), !is.na(Net_Income), !is.na(Population))
+
+
+selected_data
+```
+
+```{r, results='hide'}
+#refactoring education years into three categories 
+selected_data <- selected_data %>% mutate(Education_new_fac = case_when(
+  Education_Years <=10 ~ "Low educ req",
+  Education_Years >10 ~ "High educ req",
+    TRUE ~ "Other"
+  ))
+
+```
+
+4.  Relationship Explorision According to the scatter plot matrix reveals key relationships between `Carbon_Emissions`, `Education_Years`, `Net_Income`, and `Population`. A strong positive association exists between `Population` and `Carbon_Emissions`, indicating that countries with larger populations tend to emit more carbon, likely due to increased industrial and energy demands. Similarly, `Net_Income` shows a positive trend with `Carbon_Emissions`, suggesting that wealthier countries might contribute more to emissions. In contrast, Education_Years appears weakly correlated with `Carbon_Emissions`, indicating that `education levels` may not directly impact emissions. Overall, `population size` and `income` are the strongest predictors of `emissions`, while education's influence is less clear and warrants further investigation.
+
+```{r, results='hide'}
+# Summary statistics
+summary(selected_data)
+# Convert Education_Years to a factor
+#selected_data$Education_Years <- as.factor(selected_data$Education_Years)
+
+# Scatter plot matrix
+#pairs(selected_data, main = "Scatter Plot Matrix")
+
+```
+
+5.  Linear Regression Trial
+
+```{r, results='hide'}
+# Build the model
+carbon_model <- lm(Carbon_Emissions ~ Education_new_fac + Net_Income + Population, data = selected_data)
+
+# Summary of the model
+summary(carbon_model)
+
+```
+
+The regression model shows a strong overall fit, with an adjusted R-squared value of 0.9328, indicating that 93.28% of the variation in carbon emissions is explained by `Education_Years`, `Net_Income`, and `Population`. Among the predictors, `Net_Income` and `Population` are highly significant (p-values \< 2e-16), with positive coefficients. This implies that higher income levels and larger populations are strongly associated with increased carbon emissions. Conversely, `Education_Years` is not a statistically significant predictor (p-value = 0.3644), suggesting its effect on carbon emissions is minimal or unclear in this dataset. The intercept, while marginally significant (p-value = 0.0723), provides limited practical interpretation. Overall, the model underscores the dominant roles of income and population in driving carbon emissions, while the influence of education appears negligible.
+
+**Interaction between Education years and Net income**
+
+```{r, results='hide'}
+# Build the model
+carbon_model_interac <- lm(Carbon_Emissions ~ Education_new_fac * Net_Income + Population, data = selected_data)
+
+# Summary of the model
+summary(carbon_model_interac)
+
+```
+
+```{r}
+# Visualize relationships
+library(ggplot2)
+
+ggplot(selected_data, aes(x = Net_Income, y = Carbon_Emissions, color = Education_new_fac)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Carbon Emissions vs. Net Income") +
+  theme(legend.position = "right")  
+
+
+
+```
+
+We can see the relationships between carbon emissions and two key variables: education years and net income. In the first plot, the relationship between education years and carbon emissions appears weak and inconsistent, with no clear trend. This aligns with the regression results showing a non-significant association between these variables. Education years seem to have minimal influence on carbon emissions in this context.
+
+In contrast, the second plot reveals a strong, positive linear relationship between net income and carbon emissions. As net income increases, carbon emissions rise substantially, reflected in the regression analysis where net income is a highly significant predictor. The linear trend suggests that wealthier nations or those with higher economic outputs are likely to emit more carbon, possibly due to industrial activities or higher consumption levels.
+
+The red regression line in the net income plot reinforces this strong association, with minimal deviation in points around the line, indicating a robust fit. These findings highlight the dominant role of economic activity in driving carbon emissions while suggesting that education levels might not be directly related. Further research could explore potential indirect effects of education on carbon emissions through other socioeconomic factors.
+
+7.  Interpretation of models and results
+
+```{r}
+# Residual diagnostics
+par(mfrow = c(2, 2))  # Arrange plots in a 2x2 layout
+#plot(carbon_model_factor)
+plot(carbon_model)
+
+```
+
+```{r, results='hide'}
+# Residual diagnostics
+par(mfrow = c(2, 2))  # Arrange plots in a 2x2 layout
+#plot(carbon_model_factor)
+plot(carbon_model_interac)
+
+```
+
+8.  Model Estimation
+
+```{r, results='hide'}
+# Compare the models using ANOVA
+anova(carbon_model, carbon_model_interac)
+
+```
+
+The factor model highlights that the relationship between education years and carbon emissions is nuanced, with certain education levels (like 8 and 8.5 years) being particularly impactful. This could indicate critical thresholds where education systems or societal behaviors influence emissions. For policy-making, focusing on specific education levels rather than increasing education years linearly might yield better outcomes for carbon reduction strategies.While both models perform well, the factor model provides deeper insights and better predictive power, making it more suitable for nuanced analyses and interventions.
+
+6.  Linear Regression with interaction term
+7.  Linear Regression Trial
+
+
+### Research Question 2
+
+**Research question 2:** How can a country be classified into an Income Group (Categorical variable) based on factors like life expectancy and labor force.
+
+
+
+
+
+```{r, warning=FALSE}
+
+
+eda_data <- main_data[, c("Income Group", "Time", "Population, total [SP.POP.TOTL]",
+                        "Life expectancy at birth, total (years) [SP.DYN.LE00.IN]", 
+                        "Adjusted net national income (current US$) [NY.ADJ.NNTY.CD]")]
+
+eda_data <- eda_data[!(is.na(eda_data$`Income Group`) | eda_data$`Income Group` == "") &
+             !(is.na(eda_data$`Life expectancy at birth, total (years) [SP.DYN.LE00.IN]`) | 
+               eda_data$`Life expectancy at birth, total (years) [SP.DYN.LE00.IN]` == "") &
+             !(is.na(eda_data$`Adjusted net national income (current US$) [NY.ADJ.NNTY.CD]`) | 
+               eda_data$`Adjusted net national income (current US$) [NY.ADJ.NNTY.CD]` == ""), ]
+
+
+p1 <-ggplot(eda_data, aes(y = `Life expectancy at birth, total (years) [SP.DYN.LE00.IN]`, 
+                      x = log(`Adjusted net national income (current US$) [NY.ADJ.NNTY.CD]`), 
+                      color = `Income Group`)) +
+  geom_point(size = 3, alpha = 0.8) + # Scatter points with size and transparency
+  geom_smooth(method = "lm", se = FALSE, aes(group = `Income Group`), linewidth = 0.8) + # Regression lines without confidence intervals
+  labs(title = "Life Expectancy vs. Log Net National Income",
+       x = "Log Adjusted Net National income",
+       y = "Life Expectancy",
+       color = "Income Group") + # Labels for axes and legend
+  theme_minimal() # A clean theme for the plot
+
+p1
+
+```
+
+
+
+
+```{r, warning=FALSE}
+
+eda_data <- main_data[, c("Income Group", "Time", "Population, total [SP.POP.TOTL]",
+                        "Life expectancy at birth, total (years) [SP.DYN.LE00.IN]", 
+                        "Labor force ratio")]
+
+eda_data <- eda_data[!(is.na(eda_data$`Income Group`) | eda_data$`Income Group` == "") &
+             !(is.na(eda_data$`Life expectancy at birth, total (years) [SP.DYN.LE00.IN]`) | 
+               eda_data$`Life expectancy at birth, total (years) [SP.DYN.LE00.IN]` == "") &
+             !(is.na(eda_data$`Labor force ratio`) | 
+               eda_data$`Labor force ratio` == ""), ]
+
+
+p2 <-ggplot(eda_data, aes(x = `Life expectancy at birth, total (years) [SP.DYN.LE00.IN]`, 
+                      y = `Labor force ratio`, 
+                      color = `Income Group`)) +
+  geom_point(size = 3, alpha = 0.8) + # Scatter points with size and transparency
+  geom_smooth(method = "lm", se = FALSE, aes(group = `Income Group`), linewidth = 0.8) + # Regression lines without confidence intervals
+  labs(title = "Life Expectancy vs. Labor Force Ratio",
+       x = "Life Expectancy at Birth (Years)",
+       y = "Labor force ratio",
+       color = "Income Group") + # Labels for axes and legend
+  theme_minimal() # A clean theme for the plot
+
+```
+
+
+
+```{r, warning=FALSE, results='hide'}
+
+
+eda_data <- main_data[, c("Income Group", "Time", "Population, total [SP.POP.TOTL]",
+                        "Life expectancy at birth, total (years) [SP.DYN.LE00.IN]", 
+                        "Labor force ratio")]
+
+eda_data <- eda_data[!(is.na(eda_data$`Income Group`) | eda_data$`Income Group` == "") &
+             !(is.na(eda_data$`Life expectancy at birth, total (years) [SP.DYN.LE00.IN]`) | 
+               eda_data$`Life expectancy at birth, total (years) [SP.DYN.LE00.IN]` == "") &
+             !(is.na(eda_data$`Population, total [SP.POP.TOTL]`) | 
+               eda_data$`Population, total [SP.POP.TOTL]` == ""), ]
+
+
+p3 <-ggplot(eda_data, aes(x = `Life expectancy at birth, total (years) [SP.DYN.LE00.IN]`, 
+                      y = log(`Population, total [SP.POP.TOTL]`), 
+                      color = `Income Group`)) +
+  geom_point(size = 3, alpha = 0.8) + # Scatter points with size and transparency
+  geom_smooth(method = "lm", se = FALSE, aes(group = `Income Group`), linewidth = 0.8) + # Regression lines without confidence intervals
+  labs(title = "Life Expectancy vs. Log Total Population",
+       x = "Life Expectancy at Birth (Years)",
+       y = "Log (Total Population)",
+       color = "Income Group") + # Labels for axes and legend
+  theme_minimal() # A clean theme for the plot
+
+```
+
+```{r, warning=FALSE, results='hide'}
+# Choose the data we need
+data <- main_data[, c("Income Group", 
+                     "Time", 
+                     "Life expectancy at birth, total (years) [SP.DYN.LE00.IN]", 
+                     "Labor force, total [SL.TLF.TOTL.IN]", 
+                     "Population, total [SP.POP.TOTL]")]
+
+colnames(data) <- c("Income Group",
+                    "Year",
+                    "Life Expectancy (Years)",
+                    "Total Labor Force",
+                    "Total Population")
+
+data$`Income Group` <- factor(data$`Income Group`, 
+                              levels = c("L", "LM", "UM", "H"), 
+                              ordered = TRUE)
+
+data$`Labor Force Ratio` <- data$`Total Labor Force`/data$`Total Population`
+data <- na.omit(data)
+                
+str(data) 
+```
+
+
+```{r, warning=FALSE}
+# The box-plot of Life Expectancy (Years) and Labor Force Ratio for different Income Group
+p3 <- ggplot(data, aes(x = `Income Group`, y = `Life Expectancy (Years)`)) +
+  geom_boxplot(fill = "green") +
+  labs(title = "Boxplot of Life Expectancy by Income Group", x = "Income Group", y = "Life Expectancy (Years)")
+p4 <- ggplot(data, aes(x = `Income Group`, y = `Labor Force Ratio`)) +
+  geom_boxplot(fill = "orange") +
+  labs(title = "Boxplot of Labor Force Ratio by Income Group", x = "Income Group", y = "Labor Force Ratio")
+
+grid.arrange(p3, p4, ncol = 2)
+```
+
+
+```{r, warning=FALSE, results='hide'}
+# Joint Distribution Plots of Life Expectancy and Labor Force Ratio
+p5 <- ggplot(data, aes(x = `Life Expectancy (Years)`, y = `Labor Force Ratio`)) +
+  geom_point() +
+  stat_smooth(method = "lm") +
+  labs(title = "Joint Distribution with Linear Fit")
+```
+
+
+
+```{r, warning=FALSE}
+# Normalize the data
+cols <- c("Life Expectancy (Years)", "Total Labor Force")
+data[cols] <- scale(data[cols])
+
+# Add an intersection term for Case 3
+data$`Intersection Term` <- data$`Life Expectancy (Years)` * data$`Labor Force Ratio`
+```
+
+```{r, warning=FALSE}
+# Random divide the data in 80% to 20% Ratio
+set.seed(123)
+indices <- 1:nrow(data)
+train_indices <- sample(indices, size = floor(0.8 * length(indices)))
+test_indices <- setdiff(indices, train_indices)
+train_data <- data[train_indices, ]
+test_data <- data[test_indices, ]
+```
+
+
+
+```{r, warning=FALSE, results='hide'}
+model5 <- polr(`Income Group` ~ `Life Expectancy (Years)` + `Labor Force Ratio`, 
+               data = train_data, Hess = TRUE)
+summary(model5)
+```
+
+```{r, warning=FALSE, results='hide'}
+coefficients5 <- coef(model5)
+Odds_Ratio5 <- exp(coefficients5)
+pred5 <- predict(model5, test_data)
+conf_matrix5 <- confusionMatrix(pred5, test_data$`Income Group`)
+conf_matrix5
+```
+
+```{r, warning=FALSE}
+conf_matrix_percent_row5 <- round(prop.table(conf_matrix5$table, 1) * 100, 2)
+conf_matrix_percent_row5
+```
+
+## Conclusion
+
+## References
+
