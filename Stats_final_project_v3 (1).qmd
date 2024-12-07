@@ -1,7 +1,7 @@
 ---
 title: "Modeling Global Ecological and Socio-Economic Factors (2015-2023) "
 author: "Meron Gedrago, Xiangyu Wang, Adil Gazder, Hongyi Duan"
-subtitle: "December "
+subtitle: "IDS702, Fall 2024 "
 format: 
   pdf:
     geometry: margin=1in
@@ -12,11 +12,7 @@ execute:
 
 ## Abstract
 
-Our analysis confirmed that larger and wealthier nations are the primary contributors to Carbon Emission, which aligns with their industrial output and economic activities. Encouragingly, some high-income countries are successfully mitigating emissions per capita through progressive policies. For lower-income nations, emissions remain lower but are expected to rise with industrial growth.
-
-Education emerged as a critical factor in economic advancement, with better-educated populations correlating strongly with higher income classifications. This highlights the dual importance of investing in education and sustainable development initiatives.
-
-These findings emphasize the need for global cooperation. Wealthier nations must continue leading emissions reduction efforts, while developing countries require support for sustainable growth. Policymakers should focus on sector-specific interventions, such as clean energy and efficient transportation systems, to reduce environmental impacts globally. Future research should refine these approaches and explore actionable solutions for equitable and sustainable progress.
+This study explores the interconnected roles of education, income, and socioeconomic characteristics in shaping global carbon emissions. Using comprehensive global datasets, the research examines how variations in compulsory education duration impact carbon emissions across nations with differing income levels and population sizes. It also investigates the influence of life expectancy and labor force participation on a country’s income group, highlighting indirect effects on environmental outcomes.The analysis seeks to uncover patterns and relationships that may provide insights into designing policies that simultaneously address climate change and socioeconomic disparities. By focusing on the interplay of education and income in mitigating carbon emissions, this study aims to contribute to a deeper understanding of sustainable development pathways and their implications for achieving global climate goals.
 
 ## Introduction
 
@@ -44,7 +40,7 @@ Our data was a curated dataset from the World Development Indicators (WDI) platf
 
 The two main outcome variables we use is the total carbon emissions for a country for a given year and the Income group of a country for a given year. When we write about the variables we will use to estimate the two outcome variables, we have the following restriction on what we refer when we speak on our variables
 
--   We only restrict the total CO2 emissions to focus only on emissions from direct anthropocentric activities and exclude natural or semi-natural processes.
+-   The Total CO2 Emissions variable is measured in terms of Mega-tonnes of CO2 equivalent (1 million metric tonnes) and is the total annual emissions of carbon dioxide equivalent units from human activities, excluding its use for Land Use, Land Use Change and Forestry (LULUCF). We only restrict the total CO2 emissions to focus only on emissions from direct anthropocentric activities and exclude natural or semi-natural processes.
 
 -   Income Group is defined as the classification of a country into one of the of four categories (Low Income (L), Lower Middle Income (LM), Upper Middle Income (UM) and High Income (H)), based on its Gross Net Income per capita (measured in US\$) for that given year. Based on dynamic thresholds which vary per year, each country is classified into one of the following four categories.
 
@@ -58,9 +54,9 @@ The two main outcome variables we use is the total carbon emissions for a countr
 
 We chose two different models for our research questions. We used a multiple linear regression to model the carbon emission for countries while we used a multinomial logistic regression model to predict the categories of income group for countries.
 
--   Multiple linear regression: We conducted an anova test to measure the significance of the interaction term, and tested for linear regression assumptions through the residuals vs fitted and qqplot.
+-   Multiple Linear Regression: We conducted an anova test to measure the significance of the interaction term, and tested for linear regression assumptions through the residuals vs fitted and qq-plot.
 
--   Multinomial logistic regression: \[FILL HERE \]
+-   Ordinal Regression (Proportional Odds Logistic Regression): We considered modelling using ordinal regression and multinomial regression, due to improved accuracy modeled the relationship using an ordinal regression model.
 
 ## Results
 
@@ -144,9 +140,6 @@ summary(selected_data$Education_new_fac)
 
 ```
 
-```         
-```
-
 The data as shown below in 'Table 1' shows big differences between countries in carbon emissions, income, education, and population. A few countries produce a lot of carbon emissions, raising the global average, while most emit much less. Income is also uneven, with some very rich countries pulling the average far above what most others earn. Education levels are more even, with most countries requiring about 10 years of school, but improving the quality of education may help poorer nations. Bigger, richer countries tend to have larger populations and produce more carbon, but population size alone doesn’t explain the differences. These patterns show that solving problems like climate change and poverty needs different plans for different countries—rich, high-emission countries need to lead the way in cutting emissions and sharing resources to help others grow in a fair and sustainable way.
 
 Table 1: Characteristics of country carbon emission and demography
@@ -191,16 +184,16 @@ summary(carbon_model_interac)
 
 Table 2: Multiple Linear Regression Model Summary
 
-| Variable                                | Estimate  | SE        | t-value  | p-value |
-|-----------------------------------------|-----------|-----------|----------|---------|
-| Compulsory Education                    | -110.7    | 61.44     | -1.504   | 0.133   |
-| National Income                         | 2.040e-10 | 1.034e-11 | 19.728   | \<0.001 |
-| Population                              | 2.471e-6  | 4.666e-08 | 52.966   | \<0.001 |
-| Compulsory Education \* National Income | 8.714e-11 | 1.168e-11 | 7.463    | \<0.001 |
+| Variable                                | Estimate  | SE        | t-value | p-value |
+|----------------------------|-----------|-----------|-----------|-----------|
+| Compulsory Education                    | -110.7    | 61.44     | -1.504  | 0.133   |
+| National Income                         | 2.040e-10 | 1.034e-11 | 19.728  | \<0.001 |
+| Population                              | 2.471e-6  | 4.666e-08 | 52.966  | \<0.001 |
+| Compulsory Education \* National Income | 8.714e-11 | 1.168e-11 | 7.463   | \<0.001 |
 
 The regression model shows a strong overall fit, indicating that 93.52% of the variation in carbon emissions is explained by Compulsory Education, National Income and Population.The regression model shows how factors like education, income, and population affect carbon emissions. It tells us that net income and population size are very important in predicting carbon emissions—higher income and more people lead to more carbon emissions. Education level alone doesn't seem to have a big effect, but when combined with income, it changes the way income affects emissions. Specifically, countries with lower education seem to have a stronger link between income and carbon emissions. This means that while income and population are the biggest drivers, education can still influence how these factors interact with emissions.
 
-```{}
+```         
 ```
 
 ```{r}
@@ -235,6 +228,8 @@ plot(carbon_model)
 The factor model highlights that the relationship between education years and carbon emissions is nuanced, with certain education levels (like 8 and 8.5 years) being particularly impactful. This could indicate critical thresholds where education systems or societal behaviors influence emissions. For policy-making, focusing on specific education levels rather than increasing education years linearly might yield better outcomes for carbon reduction strategies.While both models perform well, the factor model provides deeper insights and better predictive power, making it more suitable for nuanced analyses and interventions.
 
 ### Research Question 2: Factors affecting Income Group
+
+We started with some exploratory data analysis to understand the impact of life expectancy as a function of adjusted net national income and notice that across various income groups, there is a positive correlation between the net national income of a country and the life expectancy of its people, illustrated in the figure below. This relationship highlights the significant role economic resources play in improving the quality of life and access to essential services, such as healthcare, nutrition, and education, which collectively contribute to increased life expectancy.
 
 ```{r, warning=FALSE}
 
@@ -342,6 +337,8 @@ data <- na.omit(data)
 str(data) 
 ```
 
+We further examine the relationship between the countries classified under various income groups and the corresponding life expectancy and labor force ratio for a given year. We again note that countries classified within higher income group brackets tend to have higher labor force ratios, undersocring the critical role of an active labor force in driving economic growth and maintaining a higher income classification.
+
 ```{r, warning=FALSE}
 # The box-plot of Life Expectancy (Years) and Labor Force Ratio for different Income Group
 p3 <- ggplot(data, aes(x = `Income Group`, y = `Life Expectancy (Years)`)) +
@@ -381,6 +378,16 @@ train_data <- data[train_indices, ]
 test_data <- data[test_indices, ]
 ```
 
+We run the proportional odds model to try and model the income group classification of a country by splitting the data into training data (randomized 80% subset of the full data) and testing data (remaining 20% subset) to understand how accurately our model performs. The intercepts are detailed in the table below:
+
+| Term                    | Estimate | SE    | t-value | p-value |
+|-------------------------|----------|-------|---------|---------|
+| Life Expectancy (Years) | 2.547    | 0.113 | 22.45   | \<0.001 |
+| Labor Force Ratio       | 5.471    | 0.822 | 6.658   | \<0.001 |
+| L/LM                    | -1.330   | 0.365 | -3.642  | \<0.001 |
+| LM/UM                   | 1.819    | 0.361 | 5.042   | \<0.001 |
+| UM/H                    | 4.313    | 0.387 | 11.154  | \<0.001 |
+
 ```{r, warning=FALSE, results='hide'}
 model5 <- polr(`Income Group` ~ `Life Expectancy (Years)` + `Labor Force Ratio`, 
                data = train_data, Hess = TRUE)
@@ -395,10 +402,21 @@ conf_matrix5 <- confusionMatrix(pred5, test_data$`Income Group`)
 conf_matrix5
 ```
 
+We notice the statistical significance of both the life expectancy and labor force ratio terms along with the intercepts for boundaries between the various levels of the income group are statistically significant with an overall accuracy of 66.2% (95% confidence interval of 60.5% - 71.5%) and a no information rate (NIR) of 32.1%. The confusion matrix from the testing data (as % of row totals) have been shown below. We do notice that there seems to be a slight difficulty in classification between Lower Middle (LM) and Upper Middle (UM) levels which can be improved with more extensive training data.
+
 ```{r, results='hide'}
 conf_matrix_percent_row5 <- round(prop.table(conf_matrix5$table, 1) * 100, 2)
 conf_matrix_percent_row5
 ```
+
+| *Prediction* | L      | LM     | UM     | H      |
+|--------------|--------|--------|--------|--------|
+| L            | 72.0%  | 22.0%  | 6.0%   | 0.0%   |
+| LM           | 33.85% | 41.54% | 24.62% | 0.0%   |
+| UM           | 2.30%  | 29.89% | 56.32% | 11.49% |
+| H            | 0.0%   | 0.0%   | 11.34% | 88.66% |
+
+We hence see that life expectancy and labor force ratio are critical indicators of a population’s health and economic activity, both of which are strongly tied to a country’s income group classification. Higher life expectancy and a larger labor force ratio are often associated with wealthier, more developed economies, while lower values indicate the challenges faced by poorer regions. The model highlights the importance of these factors in understanding socio-economic development, while also acknowledging that classifying income groups is complex and requires further refinement, especially when distinguishing between the middle income groups.
 
 ## Conclusion
 
@@ -409,3 +427,11 @@ Through a systematic process of data sourcing, preprocessing, variable selection
 Future research should integrate industry-specific data, such as emissions from energy and transportation sectors, and leverage advanced modeling techniques to deepen understanding. This could guide policy interventions aimed at balancing economic development with environmental sustainability.
 
 ## References
+
+-   World Development Indicators (2024). World Bank Group (Databank). Source Data. *([Link](https://databank.worldbank.org/source/world-development-indicators))*
+
+-   John Creamer (September 2024). United States Census Bureau. "Health Inclusive Poverty Measure in the United States: 2023". *([Link](https://www.census.gov/library/working-papers/2024/demo/sehsd-wp2024-24.html))*
+
+-   Our World in data. "CO2 emissions per capita vs GDP per capita, 2022". *([Link](https://ourworldindata.org/grapher/co2-emissions-vs-gdp))*
+
+-   International Energy agency (February 2023). "The world’s top 1% of emitters produce over 1000 times more CO2 than the bottom 1%". *([Link](https://www.iea.org/commentaries/the-world-s-top-1-of-emitters-produce-over-1000-times-more-co2-than-the-bottom-1))*
